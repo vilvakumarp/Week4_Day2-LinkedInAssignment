@@ -1,0 +1,647 @@
+{
+  "name": "LinkedIn_Assignment",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -144,
+        -128
+      ],
+      "id": "dde9e886-d3ea-48b5-bedb-bc4fe4db8e67",
+      "name": "Telegram Trigger",
+      "webhookId": "868ced36-f46d-482e-bffe-0b096f1eaecb",
+      "credentials": {
+        "telegramApi": {
+          "id": "lLlnmTxNkzVo3A4o",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional LinkedIn content writer.\n\nYour task is to create or revise a LinkedIn post.\n\nIncoming Telegram message:\n{{ $('Telegram Trigger').first().json.message.text }}\n\nIf this is a NEW TOPIC:\n- Write a LinkedIn post about the topic.\n- If a LinkedIn URL is included after a | separator, use it only as optional context.\n- Do not invent facts or claim that you verified the URL.\n\nIf this is a REVISION REQUEST:\n- Use the original draft and the user's editing instructions provided in the input.\n- Preserve accurate information.\n- Apply the requested changes carefully.\n- Do not start over unless the user asks you to.\n\nFor a new post:\n- Start with a strong hook.\n- Write 120–150 words.\n- Use a professional, natural, engaging tone.\n- Include one clear call to action.\n- Use no more than 3 relevant hashtags.\n\nAfter creating or revising the draft, call the Reviewer Agent tool to review and improve it.\n\nReturn only the final LinkedIn post from the Reviewer Agent.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "da53ee69-d5c6-4fa3-8acc-e164a6d08fbe",
+      "name": "Writer Agent"
+    },
+    {
+      "parameters": {
+        "text": "=Use this tool to review and improve a draft LinkedIn post. Check grammar, clarity, tone, hook, call to action, hashtags, and unsupported claims. Return only the improved final post.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        432,
+        208
+      ],
+      "id": "a22f9c4c-dc9a-4d0c-b9cb-bdca51fe1d5c",
+      "name": "Reviewer Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c44e115c-6725-4150-b1b8-4daeae3f2910",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        736,
+        -16
+      ],
+      "id": "b203ab82-18d1-40b9-90d8-ad2bbeca776e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        160
+      ],
+      "id": "26382dee-8c7f-4196-9183-133b846c96cb",
+      "name": "Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "b59V88jxZsk4FIK1",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        320
+      ],
+      "id": "3221eaa3-5025-434c-af0d-fc25502e2e90",
+      "name": "Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "b59V88jxZsk4FIK1",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "vilva.irsm@gmail.com",
+        "subject": "LinkedIn Approval",
+        "message": "={{ $json.output }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "711ba26f-e240-4389-9733-7d8159ee0277",
+      "name": "Post Approval",
+      "webhookId": "88bb7b62-1191-4c40-8692-630747bef4fa",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "xSALBSR2fZPoAV8W",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1klugen4GbtT5WIKtKG-4RoeU1HN3leJGID_9jG0mmm4",
+          "mode": "list",
+          "cachedResultName": "LinkedIn - update History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klugen4GbtT5WIKtKG-4RoeU1HN3leJGID_9jG0mmm4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klugen4GbtT5WIKtKG-4RoeU1HN3leJGID_9jG0mmm4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date and Time": "={{ DateTime.fromSeconds($('Telegram Trigger').first().json.message.date).toISO() }}",
+            "Approval Status": "={{ $json.data.approved }}",
+            "Approval time": "={{ $json.data.respondedAt }}",
+            "LinkedIn Content": "={{ $('Writer Agent').item.json.output }}",
+            "Subject": "={{ $('Telegram Trigger').first().json.message.text.split('|')[0].trim() }}",
+            "Telegram Chat ID": "={{ $('Telegram Trigger').first().json.message.chat.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date and Time",
+              "displayName": "Date and Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LinkedIn Content",
+              "displayName": "LinkedIn Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Telegram Chat ID",
+              "displayName": "Telegram Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval time",
+              "displayName": "Approval time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        -64
+      ],
+      "id": "2d87b68a-c545-4b55-9d38-4ad0ecf3acd8",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "92vMcEM6To2kaYRm",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id.toString() }}",
+        "text": "=✅ Your LinkedIn post has been approved and saved to Google Sheets!\n\n📝 Topic: {{ $('Telegram Trigger').first().json.message.text.split('|')[0].trim() }}\n\nYour reviewed post is safely stored in your approval history.",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        -64
+      ],
+      "id": "106fab06-7309-451e-8eb4-e5e78da0f56a",
+      "name": "Send a text message",
+      "webhookId": "a5b35333-faa8-42ae-a53d-39f3feb80a55",
+      "credentials": {
+        "telegramApi": {
+          "id": "lLlnmTxNkzVo3A4o",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').first().json.message.chat.id.toString() }}",
+        "text": "=❌ Your LinkedIn post was declined.\n\n📝 Draft:\n{{ $('Writer Agent').first().json.output }}\n\n✏️ Reply directly to this message with the changes you want.\n\nExample:\nMake the hook stronger, shorten the post, and end with a question.\n\nOr reply IGNORE to stop this request.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        128
+      ],
+      "id": "9a3be4a8-a2f3-4ccc-85a6-613ba68a0d86",
+      "name": "Send a text message1",
+      "webhookId": "b2ace471-39e7-4a0c-8254-33a791e30312",
+      "credentials": {
+        "telegramApi": {
+          "id": "lLlnmTxNkzVo3A4o",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1bb7907e-4d20-4182-962b-040f2c70c3b1",
+              "leftValue": "={{ /^(hi|hello|hey|good morning|good afternoon|good evening)\\b/i.test(($json.message.text || '').trim()) || /\\b(what format|how do i|how to|what can you do|how does this work|help me|who are you)\\b/i.test(($json.message.text || '').trim()) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        -128
+      ],
+      "id": "f49289da-5dce-4166-8a06-936cf83f76b1",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Hello! 👋 I'm your LinkedIn Post Assistant.  You can: • Send me a topic to create a LinkedIn post. • Include a company URL for context. • Ask me how to format your request.  Example: Remote work | https://example.com  I'll draft and review your post, then send it for Gmail approval.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        -176
+      ],
+      "id": "43303a65-62fa-487d-9953-20b7f1814ceb",
+      "name": "Template as reply",
+      "webhookId": "dc006ceb-6903-4725-8fed-56043d44eb1e",
+      "credentials": {
+        "telegramApi": {
+          "id": "lLlnmTxNkzVo3A4o",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1klugen4GbtT5WIKtKG-4RoeU1HN3leJGID_9jG0mmm4",
+          "mode": "list",
+          "cachedResultName": "LinkedIn - update History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klugen4GbtT5WIKtKG-4RoeU1HN3leJGID_9jG0mmm4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1klugen4GbtT5WIKtKG-4RoeU1HN3leJGID_9jG0mmm4/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date and Time": "={{ DateTime.fromSeconds($('Telegram Trigger').first().json.message.date).toISO() }}",
+            "Approval Status": "=Declined",
+            "Approval time": "={{ $json.data.respondedAt }}",
+            "LinkedIn Content": "={{ $('Writer Agent').item.json.output }}",
+            "Subject": "={{ $('Telegram Trigger').first().json.message.text.split('|')[0].trim() }}",
+            "Telegram Chat ID": "={{ $('Telegram Trigger').first().json.message.chat.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date and Time",
+              "displayName": "Date and Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LinkedIn Content",
+              "displayName": "LinkedIn Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Telegram Chat ID",
+              "displayName": "Telegram Chat ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval time",
+              "displayName": "Approval time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        96
+      ],
+      "id": "43b243ec-aa16-4ec6-9389-e363d8a427d6",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "92vMcEM6To2kaYRm",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reviewer Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer Agent": {
+      "main": [
+        [
+          {
+            "node": "Post Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reviewer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Approval": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Template as reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Writer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "e07f700c-2d11-4068-b15c-ed07e047db19",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a37dbab793a1fe390dd18ae403ae3d05c186f6630d9785503bd83dbcb176f18"
+  },
+  "nodeGroups": [],
+  "id": "K8VtMvcW05s9kbqd",
+  "tags": []
+}
